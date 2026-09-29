@@ -174,6 +174,35 @@ const getStorage = () => {
 	if (typeof chrome !== 'undefined' && chrome.storage?.local) {
 		return chrome.storage.local;
 	}
+	// 浏览器预览/非扩展环境下，回退到 localStorage
+	if (typeof window !== 'undefined' && window.localStorage) {
+		return {
+			get: async (key: string | string[]) => {
+				const targets = Array.isArray(key) ? key : [key];
+				const result: Record<string, any> = {};
+				for (const item of targets) {
+					const value = window.localStorage.getItem(item);
+					if (value !== null) {
+						try {
+							result[item] = JSON.parse(value);
+						} catch {
+							result[item] = value;
+						}
+					}
+				}
+				return result;
+			},
+			set: async (items: Record<string, any>) => {
+				Object.entries(items).forEach(([key, value]) => {
+					window.localStorage.setItem(key, JSON.stringify(value));
+				});
+			},
+			remove: async (key: string | string[]) => {
+				const keys = Array.isArray(key) ? key : [key];
+				keys.forEach((item) => window.localStorage.removeItem(item));
+			},
+		};
+	}
 	throw new Error('Storage API not available. Make sure the extension has storage permission.');
 };
 
@@ -587,16 +616,21 @@ export const useWalletStore = create<WalletStore>()(
 
 			// DApp integration
 			connect: async (): Promise<WalletAccount> => {
-				const state = await new Promise<WalletState | null>((resolve) => {
-					browser.storage.local.get('wallet-store', (result: any) => {
-						const stored = result['wallet-store'];
-						if (stored && stored.state) {
-							resolve(stored.state);
-						} else {
-							resolve(null);
+				const state = await (async (): Promise<WalletState | null> => {
+					try {
+						const storage = getStorage();
+						if (storage && 'get' in storage) {
+							const result = await storage.get('wallet-store');
+							const stored = result['wallet-store'];
+							if (stored && stored.state) {
+								return stored.state;
+							}
 						}
-					});
-				});
+					} catch (error) {
+						console.warn('Failed to read wallet state from storage:', error);
+					}
+					return null;
+				})();
 
 				if (!state || !state.currentAccount) {
 					throw new Error('请先在插件中导入账户');

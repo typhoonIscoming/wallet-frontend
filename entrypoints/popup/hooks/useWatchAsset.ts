@@ -9,8 +9,14 @@ export function useWatchAsset() {
 	const [watchAssetRequest, setWatchAssetRequest] = useState<WatchAssetRequest | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const hasRuntime = !!browser?.runtime && typeof browser.runtime.sendMessage === 'function';
 
 	const fetchWatchAssetRequest = useCallback(async () => {
+		if (!hasRuntime) {
+			setWatchAssetRequest(null);
+			setError(null);
+			return;
+		}
 		setLoading(true);
 		setError(null);
 		try {
@@ -26,10 +32,13 @@ export function useWatchAsset() {
 		} finally {
 			setLoading(false);
 		}
-	}, []);
+	}, [hasRuntime]);
 
 	const handleWatchAssetApprove = useCallback(async () => {
 		if (!watchAssetRequest) return;
+		if (!hasRuntime) {
+			return false;
+		}
 		setLoading(true);
 		setError(null);
 		try {
@@ -46,10 +55,13 @@ export function useWatchAsset() {
 		} finally {
 			setLoading(false);
 		}
-	}, [watchAssetRequest]);
+	}, [watchAssetRequest, hasRuntime]);
 
 	const handleWatchAssetReject = useCallback(async () => {
 		if (!watchAssetRequest) return;
+		if (!hasRuntime) {
+			return false;
+		}
 		setLoading(true);
 		setError(null);
 		try {
@@ -66,9 +78,13 @@ export function useWatchAsset() {
 		} finally {
 			setLoading(false);
 		}
-	}, [watchAssetRequest]);
+	}, [watchAssetRequest, hasRuntime]);
 
 	useEffect(() => {
+		if (!hasRuntime) {
+			setWatchAssetRequest(null);
+			return;
+		}
 		fetchWatchAssetRequest();
 		const listener = (message: any) => {
 			if (message?.type === 'WATCH_ASSET_REQUEST_CHANGED') {
@@ -79,7 +95,7 @@ export function useWatchAsset() {
 		return () => {
 			browser.runtime.onMessage.removeListener(listener);
 		};
-	}, [fetchWatchAssetRequest]);
+	}, [fetchWatchAssetRequest, hasRuntime]);
 
 	return {
 		watchAssetRequest,

@@ -9,8 +9,14 @@ export function useAddChain() {
 	const [addChainRequest, setAddChainRequest] = useState<AddChainRequest | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const hasRuntime = !!browser?.runtime && typeof browser.runtime.sendMessage === 'function';
 
 	const fetchAddChainRequest = useCallback(async () => {
+		if (!hasRuntime) {
+			setAddChainRequest(null);
+			setError(null);
+			return;
+		}
 		setLoading(true);
 		setError(null);
 		try {
@@ -26,10 +32,13 @@ export function useAddChain() {
 		} finally {
 			setLoading(false);
 		}
-	}, []);
+	}, [hasRuntime]);
 
 	const handleAddChainApprove = useCallback(async () => {
 		if (!addChainRequest) return;
+		if (!hasRuntime) {
+			return false;
+		}
 		setLoading(true);
 		setError(null);
 		try {
@@ -46,10 +55,13 @@ export function useAddChain() {
 		} finally {
 			setLoading(false);
 		}
-	}, [addChainRequest]);
+	}, [addChainRequest, hasRuntime]);
 
 	const handleAddChainReject = useCallback(async () => {
 		if (!addChainRequest) return;
+		if (!hasRuntime) {
+			return false;
+		}
 		setLoading(true);
 		setError(null);
 		try {
@@ -66,9 +78,13 @@ export function useAddChain() {
 		} finally {
 			setLoading(false);
 		}
-	}, [addChainRequest]);
+	}, [addChainRequest, hasRuntime]);
 
 	useEffect(() => {
+		if (!hasRuntime) {
+			setAddChainRequest(null);
+			return;
+		}
 		fetchAddChainRequest();
 		const listener = (message: any) => {
 			if (message?.type === 'ADD_CHAIN_REQUEST_CHANGED') {
@@ -79,7 +95,7 @@ export function useAddChain() {
 		return () => {
 			browser.runtime.onMessage.removeListener(listener);
 		};
-	}, [fetchAddChainRequest]);
+	}, [fetchAddChainRequest, hasRuntime]);
 
 	return {
 		addChainRequest,
