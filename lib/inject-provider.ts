@@ -3,7 +3,7 @@
  * 这个脚本会在页面上下文中执行
  */
 export function getInjectionScript(): string {
-  return `
+	return `
 (function() {
   'use strict';
   

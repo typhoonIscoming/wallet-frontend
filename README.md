@@ -13,24 +13,28 @@
 ## ✨ 功能特性
 
 ### 核心钱包功能
+
 - ✅ 创建/导入钱包（助记词、私钥）
 - ✅ 钱包锁定/解锁
 - ✅ 账户管理（创建、切换、重命名）
 - ✅ 多账户支持
 
 ### 网络管理
+
 - ✅ 多链支持（Ethereum、Polygon、Optimism、BSC、Sepolia 等）
 - ✅ 自定义网络添加（EIP-3085 `wallet_addEthereumChain`）
 - ✅ 网络切换（EIP-3085 `wallet_switchEthereumChain`）
 - ✅ 网络信息显示
 
 ### 资产管理
+
 - ✅ 原生代币余额查询和转账
 - ✅ ERC-20 代币管理（添加、删除、余额查询、转账）
 - ✅ ERC-721 NFT 管理（添加、删除、显示、转账）
 - ✅ 代币添加请求（EIP-747 `wallet_watchAsset`）
 
 ### DApp 交互
+
 - ✅ 账户授权（`eth_requestAccounts`）
 - ✅ 消息签名（`eth_sign`、`personal_sign`）
 - ✅ EIP-712 结构化数据签名（`eth_signTypedData`、`eth_signTypedData_v3`、`eth_signTypedData_v4`）
@@ -38,6 +42,7 @@
 - ✅ 用户确认流程（所有敏感操作都需要用户确认）
 
 ### 用户体验
+
 - ✅ 现代化 UI 设计（TailwindCSS）
 - ✅ 响应式布局
 - ✅ 二维码收款地址
@@ -50,9 +55,9 @@
 - **UI 框架**: React 19 + TypeScript
 - **样式**: TailwindCSS
 - **状态管理**: Zustand
-- **加密库**: 
-  - `bip39` - 助记词生成和验证
-  - `crypto-js` - AES 加密存储
+- **加密库**:
+    - `bip39` - 助记词生成和验证
+    - `crypto-js` - AES 加密存储
 - **区块链交互**: `ethers.js` v6
 - **消息传递**: `@webext-core/messaging`
 
@@ -159,6 +164,7 @@ wxt-dev-wxt/
 **职责**: 处理所有 EIP-1193 RPC 请求，管理钱包状态，协调各个模块
 
 **核心功能**:
+
 - RPC 请求路由分发
 - 钱包状态管理（加密存储）
 - 用户确认流程管理
@@ -166,6 +172,7 @@ wxt-dev-wxt/
 - 消息传递协调
 
 **关键模块**:
+
 - `router.ts`: EIP-1193 方法路由
 - `handlers/`: 各 RPC 方法的具体实现
 - `auth.ts`: DApp 授权流程
@@ -176,6 +183,7 @@ wxt-dev-wxt/
 **职责**: 将 EIP-1193 Provider 注入到页面上下文
 
 **核心功能**:
+
 - 注入 `inject-provider.js` 到页面
 - 监听页面 RPC 请求并转发到 Background
 - 处理网络切换事件通知
@@ -185,6 +193,7 @@ wxt-dev-wxt/
 **职责**: 在页面上下文中创建 `window.ethereum` 对象
 
 **核心功能**:
+
 - 实现 EIP-1193 Provider API
 - 通过 `postMessage` 与 Content Script 通信
 - 处理 Provider 事件（`accountsChanged`、`chainChanged`）
@@ -194,6 +203,7 @@ wxt-dev-wxt/
 **职责**: 用户界面，处理所有用户交互
 
 **核心功能**:
+
 - 钱包创建/导入/解锁
 - 账户管理
 - 网络管理
@@ -201,6 +211,7 @@ wxt-dev-wxt/
 - DApp 交互确认（授权、签名、交易等）
 
 **组件分类**:
+
 - **钱包管理**: `CreateWalletPage`, `ImportWalletPage`, `UnlockPage`
 - **DApp 确认**: `AuthPage`, `SignPage`, `SwitchChainPage`, `TransactionPage`, `AddChainPage`, `WatchAssetPage`
 - **资产管理**: `SendPage`, `ReceivePage`, `TokensPage`, `NFTsPage`, `SendTokenPage`, `TransferNFTPage`
@@ -211,6 +222,7 @@ wxt-dev-wxt/
 **职责**: 使用 Zustand 管理全局钱包状态
 
 **状态结构**:
+
 ```typescript
 {
   isLocked: boolean              // 钱包是否锁定
@@ -229,6 +241,7 @@ wxt-dev-wxt/
 ### 6. 类型定义 (`types/`)
 
 **核心类型文件**:
+
 - `wallet.ts`: 钱包状态、网络、代币、NFT 等类型
 - `eip1193.ts`: EIP-1193 标准类型（RPC 方法、错误代码等）
 

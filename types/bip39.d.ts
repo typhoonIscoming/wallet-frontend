@@ -1,4 +1,3 @@
 declare module 'bip39' {
-  export function generateMnemonic(strength?: number): string;
+	export function generateMnemonic(strength?: number): string;
 }
-
