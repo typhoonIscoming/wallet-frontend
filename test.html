@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>钱包扩展测试页面</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .status {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .status.info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    .section {
+      margin-bottom: 30px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e9ecef;
+    }
+
+    .button-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #667eea;
+      color: white;
+    }
+
+    button:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .result {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 15px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .result.success {
+      background: #d4edda;
+      border-color: #c3e6cb;
+      color: #155724;
+    }
+
+    .result.error {
+      background: #f8d7da;
+      border-color: #f5c6cb;
+      color: #721c24;
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: 'Courier New', monospace;
+    }
+
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .account-info {
+      background: #e7f3ff;
+      border: 1px solid #b3d9ff;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .account-info-item {
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .account-info-label {
+      font-weight: 600;
+      color: #0056b3;
+      display: inline-block;
+      width: 120px;
+    }
+
+    .account-info-value {
+      color: #333;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔐 钱包扩展测试页面</h1>
+    <p class="subtitle">用于测试 EIP-1193 钱包扩展功能</p>
+
+    <!-- 状态显示 -->
+    <div id="status" class="status info">
+      正在检测钱包扩展...
+    </div>
+
+    <!-- 账户信息 -->
+    <div id="accountInfo" class="account-info" style="display: none;">
+      <div class="account-info-item">
+        <span class="account-info-label">连接状态:</span>
+        <span class="account-info-value" id="connectionStatus">未连接</span>
+      </div>
+      <div class="account-info-item">
+        <span class="account-info-label">账户地址:</span>
+        <span class="account-info-value" id="accountAddress">-</span>
+      </div>
+      <div class="account-info-item">
+        <span class="account-info-label">Chain ID:</span>
+        <span class="account-info-value" id="chainId">-</span>
+      </div>
+      <div class="account-info-item">
+        <span class="account-info-label">余额:</span>
+        <span class="account-info-value" id="balance">-</span>
+      </div>
+    </div>
+
+    <!-- 基础功能测试 -->
+    <div class="section">
+      <h2 class="section-title">基础功能</h2>
+      <div class="button-group">
+        <button onclick="testConnection()">连接钱包</button>
+        <button onclick="testGetAccounts()">获取账户</button>
+        <button onclick="testGetChainId()">获取 Chain ID</button>
+        <button onclick="testGetBalance()">获取余额</button>
+      </div>
+      <div id="basicResult" class="result" style="display: none;"></div>
+    </div>
+
+    <!-- 签名功能测试 -->
+    <div class="section">
+      <h2 class="section-title">签名功能</h2>
+      <div class="input-group">
+        <label for="messageInput">要签名的消息:</label>
+        <textarea id="messageInput" placeholder="输入要签名的消息...">Hello, Wallet!</textarea>
+      </div>
+      <div class="button-group">
+        <button onclick="testPersonalSign()">Personal Sign</button>
+        <button onclick="testEthSign()">Eth Sign</button>
+      </div>
+      <div id="signResult" class="result" style="display: none;"></div>
+    </div>
+
+    <!-- 类型化数据签名 -->
+    <div class="section">
+      <h2 class="section-title">类型化数据签名</h2>
+      <div class="input-group">
+        <label for="typedDataInput">类型化数据 (JSON):</label>
+        <textarea id="typedDataInput" placeholder='{"domain": {...}, "types": {...}, "message": {...}}'>{
+  "domain": {
+    "name": "Ether Mail",
+    "version": "1",
+    "chainId": 1,
+    "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCCCCCCCCCCcCCCCCCcC"
+  },
+  "types": {
+    "Person": [
+      {"name": "name", "type": "string"},
+      {"name": "wallet", "type": "address"}
+    ],
+    "Mail": [
+      {"name": "from", "type": "Person"},
+      {"name": "to", "type": "Person"},
+      {"name": "contents", "type": "string"}
+    ]
+  },
+  "message": {
+    "from": {
+      "name": "Cow",
+      "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+    },
+    "to": {
+      "name": "Bob",
+      "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+    },
+    "contents": "Hello, Bob!"
+  }
+}</textarea>
+      </div>
+      <div class="button-group">
+        <button onclick="testSignTypedData()">Sign Typed Data</button>
+        <button onclick="testSignTypedDataV3()">Sign Typed Data V3</button>
+        <button onclick="testSignTypedDataV4()">Sign Typed Data V4</button>
+      </div>
+      <div id="typedDataResult" class="result" style="display: none;"></div>
+    </div>
+
+    <!-- 区块信息测试 -->
+    <div class="section">
+      <h2 class="section-title">区块信息</h2>
+      <div class="input-group">
+        <label for="blockNumberInput">区块号 (hex 或 latest):</label>
+        <input type="text" id="blockNumberInput" placeholder="latest" value="latest">
+      </div>
+      <div class="button-group">
+        <button onclick="testGetBlockNumber()">获取当前区块号</button>
+        <button onclick="testGetBlockByNumber()">根据区块号获取区块</button>
+      </div>
+      <div id="blockResult" class="result" style="display: none;"></div>
+    </div>
+
+    <!-- 网络管理测试 -->
+    <div class="section">
+      <h2 class="section-title">网络管理</h2>
+      <div class="input-group">
+        <label for="switchChainIdInput">切换网络 Chain ID (hex):</label>
+        <input type="text" id="switchChainIdInput" placeholder="0x89 (Polygon)" value="0x89">
+      </div>
+      <div class="button-group">
+        <button onclick="testSwitchChain()">切换网络</button>
+        <button onclick="testSwitchToEthereum()">切换到 Ethereum</button>
+        <button onclick="testSwitchToSepolia()">切换到 Sepolia</button>
+        <button onclick="testSwitchToPolygon()">切换到 Polygon</button>
+        <button onclick="testSwitchToOptimism()">切换到 Optimism</button>
+        <button onclick="testSwitchToBSC()">切换到 BSC</button>
+      </div>
+      <div id="switchChainResult" class="result" style="display: none;"></div>
+      
+      <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e9ecef;">
+        <h3 style="font-size: 16px; margin-bottom: 15px; color: #333;">添加自定义网络</h3>
+        <div class="input-group">
+          <label for="addChainIdInput">Chain ID (hex):</label>
+          <input type="text" id="addChainIdInput" placeholder="0x89">
+        </div>
+        <div class="input-group">
+          <label for="addChainNameInput">网络名称:</label>
+          <input type="text" id="addChainNameInput" placeholder="Polygon Mainnet">
+        </div>
+        <div class="input-group">
+          <label for="addRpcUrlInput">RPC URL:</label>
+          <input type="text" id="addRpcUrlInput" placeholder="https://polygon-rpc.com">
+        </div>
+        <div class="input-group">
+          <label for="addCurrencySymbolInput">货币符号:</label>
+          <input type="text" id="addCurrencySymbolInput" placeholder="MATIC">
+        </div>
+        <div class="input-group">
+          <label for="addBlockExplorerInput">区块浏览器 URL (可选):</label>
+          <input type="text" id="addBlockExplorerInput" placeholder="https://polygonscan.com">
+        </div>
+        <div class="button-group">
+          <button onclick="testAddChain()">添加网络</button>
+          <button onclick="fillPolygonExample()">填充 Polygon 示例</button>
+          <button onclick="fillArbitrumExample()">填充 Arbitrum 示例</button>
+        </div>
+        <div id="addChainResult" class="result" style="display: none;"></div>
+      </div>
+    </div>
+
+    <!-- 交易测试 -->
+    <div class="section">
+      <h2 class="section-title">交易功能</h2>
+      <div class="input-group">
+        <label for="txToInput">接收地址:</label>
+        <input type="text" id="txToInput" placeholder="0x...">
+      </div>
+      <div class="input-group">
+        <label for="txValueInput">金额 (ETH):</label>
+        <input type="text" id="txValueInput" placeholder="0.001" value="0.001">
+      </div>
+      <div class="button-group">
+        <button onclick="testSendTransaction()">发送交易</button>
+        <button onclick="testSignTransaction()">签名交易</button>
+      </div>
+      <div id="txResult" class="result" style="display: none;"></div>
+    </div>
+
+    <!-- 代币管理测试 -->
+    <div class="section">
+      <h2 class="section-title">代币管理 (wallet_watchAsset)</h2>
+      <div class="input-group">
+        <label for="tokenAddressInput">代币合约地址:</label>
+        <input type="text" id="tokenAddressInput" placeholder="0x...">
+      </div>
+      <div class="input-group">
+        <label for="tokenSymbolInput">代币符号 (可选，将从链上获取):</label>
+        <input type="text" id="tokenSymbolInput" placeholder="USDT">
+      </div>
+      <div class="input-group">
+        <label for="tokenDecimalsInput">小数位数 (可选，将从链上获取):</label>
+        <input type="number" id="tokenDecimalsInput" placeholder="18" value="18">
+      </div>
+      <div class="input-group">
+        <label for="tokenImageInput">代币图片 URL (可选):</label>
+        <input type="text" id="tokenImageInput" placeholder="https://example.com/token.png">
+      </div>
+      <div class="button-group">
+        <button onclick="testWatchAsset()">添加代币到钱包</button>
+        <button onclick="fillUSDTExample()">填充 USDT 示例</button>
+        <button onclick="fillDAIExample()">填充 DAI 示例</button>
+        <button onclick="fillWETHExample()">填充 WETH 示例</button>
+      </div>
+      <div id="watchAssetResult" class="result" style="display: none;"></div>
+    </div>
+  </div>
+
+  <script>
+    let currentAccount = null;
+    let currentChainId = null;
+
+    // 初始化检测
+    window.addEventListener('load', () => {
+      checkWallet();
+      setupEventListeners();
+    });
+
+    function checkWallet() {
+      const statusEl = document.getElementById('status');
+      if (typeof window.ethereum !== 'undefined') {
+        statusEl.textContent = '✅ 钱包扩展已检测到';
+        statusEl.className = 'status success';
+      } else {
+        statusEl.textContent = '❌ 未检测到钱包扩展，请确保扩展已安装并启用';
+        statusEl.className = 'status error';
+      }
+    }
+
+    function setupEventListeners() {
+      if (typeof window.ethereum === 'undefined') return;
+
+      // 监听账户变化
+      window.ethereum.on('accountsChanged', (accounts) => {
+        console.log('账户变化:', accounts);
+        if (accounts.length > 0) {
+          currentAccount = accounts[0];
+          updateAccountInfo();
+        } else {
+          currentAccount = null;
+          hideAccountInfo();
+        }
+      });
+
+      // 监听链变化
+      window.ethereum.on('chainChanged', (chainId) => {
+        console.log('链变化:', chainId);
+        currentChainId = chainId;
+        updateAccountInfo();
+      });
+
+      // 监听连接
+      window.ethereum.on('connect', (connectInfo) => {
+        console.log('连接:', connectInfo);
+        currentChainId = connectInfo.chainId;
+        updateAccountInfo();
+      });
+
+      // 监听断开
+      window.ethereum.on('disconnect', (error) => {
+        console.log('断开:', error);
+        currentAccount = null;
+        hideAccountInfo();
+      });
+    }
+
+    function showResult(elementId, data, isError = false) {
+      const el = document.getElementById(elementId);
+      el.style.display = 'block';
+      el.className = `result ${isError ? 'error' : 'success'}`;
+      el.textContent = typeof data === 'object' ? JSON.stringify(data, null, 2) : String(data);
+    }
+
+    function hideResult(elementId) {
+      document.getElementById(elementId).style.display = 'none';
+    }
+
+    function updateAccountInfo() {
+      const infoEl = document.getElementById('accountInfo');
+      if (currentAccount) {
+        infoEl.style.display = 'block';
+        document.getElementById('connectionStatus').textContent = '已连接';
+        document.getElementById('accountAddress').textContent = currentAccount;
+        document.getElementById('chainId').textContent = currentChainId || '-';
+        // 自动获取余额
+        if (currentAccount) {
+          testGetBalance(true);
+        }
+      } else {
+        hideAccountInfo();
+      }
+    }
+
+    function hideAccountInfo() {
+      document.getElementById('accountInfo').style.display = 'none';
+    }
+
+    // 测试连接钱包
+    async function testConnection() {
+      hideResult('basicResult');
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        currentAccount = accounts[0];
+        currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+        showResult('basicResult', {
+          success: true,
+          accounts,
+          chainId: currentChainId
+        });
+        updateAccountInfo();
+      } catch (error) {
+        showResult('basicResult', {
+          error: error.message,
+          code: error.code
+        }, true);
+      }
+    }
+
+    // 测试获取账户
+    async function testGetAccounts() {
+      hideResult('basicResult');
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        showResult('basicResult', { accounts });
+        if (accounts.length > 0) {
+          currentAccount = accounts[0];
+          updateAccountInfo();
+        }
+      } catch (error) {
+        showResult('basicResult', { error: error.message }, true);
+      }
+    }
+
+    // 测试获取 Chain ID
+    async function testGetChainId() {
+      hideResult('basicResult');
+      try {
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        currentChainId = chainId;
+        showResult('basicResult', { chainId });
+        updateAccountInfo();
+      } catch (error) {
+        showResult('basicResult', { error: error.message }, true);
+      }
+    }
+
+    // 测试获取余额
+    async function testGetBalance(silent = false) {
+      if (!silent) hideResult('basicResult');
+      
+      // 如果没有当前账户，先尝试获取账户
+      if (!currentAccount) {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          if (accounts.length > 0) {
+            currentAccount = accounts[0];
+            updateAccountInfo();
+          } else {
+            // 如果 eth_accounts 返回空，尝试请求连接
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            if (accounts.length > 0) {
+              currentAccount = accounts[0];
+              updateAccountInfo();
+            } else {
+              if (!silent) {
+                showResult('basicResult', { 
+                  error: '请先连接钱包',
+                  hint: '请点击"连接钱包"按钮先连接钱包'
+                }, true);
+              }
+              return;
+            }
+          }
+        } catch (error) {
+          if (!silent) {
+            showResult('basicResult', { 
+              error: '无法获取账户',
+              detail: error.message,
+              hint: '请确保钱包已解锁并点击"连接钱包"按钮'
+            }, true);
+          }
+          return;
+        }
+      }
+      
+      try {
+        const balance = await window.ethereum.request({
+          method: 'eth_getBalance',
+          params: [currentAccount, 'latest']
+        });
+        
+        // 处理 BigInt 类型的余额
+        let balanceBigInt;
+        if (typeof balance === 'string') {
+          // 如果是十六进制字符串，转换为 BigInt
+          balanceBigInt = BigInt(balance);
+        } else if (typeof balance === 'bigint') {
+          balanceBigInt = balance;
+        } else {
+          balanceBigInt = BigInt(balance);
+        }
+        
+        const balanceEth = (Number(balanceBigInt) / 1e18).toFixed(6);
+        
+        if (!silent) {
+          showResult('basicResult', {
+            address: currentAccount,
+            balance: balance,
+            balanceWei: balanceBigInt.toString(),
+            balanceEth: balanceEth + ' ETH'
+          });
+        } else {
+          document.getElementById('balance').textContent = balanceEth + ' ETH';
+        }
+      } catch (error) {
+        console.error('获取余额失败:', error);
+        if (!silent) {
+          showResult('basicResult', { 
+            error: error.message || '获取余额失败',
+            code: error.code,
+            address: currentAccount,
+            hint: '请检查网络连接和钱包状态'
+          }, true);
+        } else {
+          document.getElementById('balance').textContent = '获取失败';
+        }
+      }
+    }
+
+    // 测试 Personal Sign
+    async function testPersonalSign() {
+      hideResult('signResult');
+      if (!currentAccount) {
+        showResult('signResult', { error: '请先连接钱包' }, true);
+        return;
+      }
+      try {
+        const message = document.getElementById('messageInput').value;
+        const signature = await window.ethereum.request({
+          method: 'personal_sign',
+          params: [message, currentAccount]
+        });
+        showResult('signResult', {
+          message,
+          signature,
+          address: currentAccount
+        });
+      } catch (error) {
+        showResult('signResult', { error: error.message, code: error.code }, true);
+      }
+    }
+
+    // 测试 Eth Sign
+    async function testEthSign() {
+      hideResult('signResult');
+      if (!currentAccount) {
+        showResult('signResult', { error: '请先连接钱包' }, true);
+        return;
+      }
+      try {
+        const message = document.getElementById('messageInput').value;
+        const messageHex = '0x' + Array.from(new TextEncoder().encode(message))
+          .map(b => b.toString(16).padStart(2, '0')).join('');
+        const signature = await window.ethereum.request({
+          method: 'eth_sign',
+          params: [currentAccount, messageHex]
+        });
+        showResult('signResult', {
+          message,
+          messageHex,
+          signature,
+          address: currentAccount
+        });
+      } catch (error) {
+        showResult('signResult', { error: error.message, code: error.code }, true);
+      }
+    }
+
+    // 测试 Sign Typed Data
+    async function testSignTypedData() {
+      await testSignTypedDataInternal('eth_signTypedData');
+    }
+
+    async function testSignTypedDataV3() {
+      await testSignTypedDataInternal('eth_signTypedData_v3');
+    }
+
+    async function testSignTypedDataV4() {
+      await testSignTypedDataInternal('eth_signTypedData_v4');
+    }
+
+    async function testSignTypedDataInternal(method) {
+      hideResult('typedDataResult');
+      if (!currentAccount) {
+        showResult('typedDataResult', { error: '请先连接钱包' }, true);
+        return;
+      }
+      try {
+        const typedDataStr = document.getElementById('typedDataInput').value;
+        const typedData = JSON.parse(typedDataStr);
+        const signature = await window.ethereum.request({
+          method: method,
+          params: [currentAccount, typedData]
+        });
+        showResult('typedDataResult', {
+          method,
+          typedData,
+          signature,
+          address: currentAccount
+        });
+      } catch (error) {
+        showResult('typedDataResult', { error: error.message, code: error.code }, true);
+      }
+    }
+
+    // 测试获取区块号
+    async function testGetBlockNumber() {
+      hideResult('blockResult');
+      try {
+        const blockNumber = await window.ethereum.request({ method: 'eth_blockNumber' });
+        showResult('blockResult', {
+          blockNumber,
+          blockNumberDecimal: parseInt(blockNumber, 16)
+        });
+      } catch (error) {
+        showResult('blockResult', { error: error.message }, true);
+      }
+    }
+
+    // 测试根据区块号获取区块
+    async function testGetBlockByNumber() {
+      hideResult('blockResult');
+      try {
+        const blockTag = document.getElementById('blockNumberInput').value || 'latest';
+        const block = await window.ethereum.request({
+          method: 'eth_getBlockByNumber',
+          params: [blockTag, false]
+        });
+        showResult('blockResult', block);
+      } catch (error) {
+        showResult('blockResult', { error: error.message }, true);
+      }
+    }
+
+    // 测试发送交易
+    async function testSendTransaction() {
+      hideResult('txResult');
+      if (!currentAccount) {
+        showResult('txResult', { error: '请先连接钱包' }, true);
+        return;
+      }
+      try {
+        const to = document.getElementById('txToInput').value;
+        const valueEth = document.getElementById('txValueInput').value;
+        const valueWei = BigInt(Math.floor(parseFloat(valueEth) * 1e18)).toString(16);
+        const txHash = await window.ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [{
+            from: currentAccount,
+            to: to,
+            value: '0x' + valueWei
+          }]
+        });
+        showResult('txResult', {
+          success: true,
+          txHash,
+          from: currentAccount,
+          to,
+          value: valueEth + ' ETH'
+        });
+      } catch (error) {
+        showResult('txResult', { error: error.message, code: error.code }, true);
+      }
+    }
+
+    // 测试签名交易
+    async function testSignTransaction() {
+      hideResult('txResult');
+      if (!currentAccount) {
+        showResult('txResult', { error: '请先连接钱包' }, true);
+        return;
+      }
+      try {
+        const to = document.getElementById('txToInput').value;
+        const valueEth = document.getElementById('txValueInput').value;
+        const valueWei = BigInt(Math.floor(parseFloat(valueEth) * 1e18)).toString(16);
+        const signedTx = await window.ethereum.request({
+          method: 'eth_signTransaction',
+          params: [{
+            from: currentAccount,
+            to: to,
+            value: '0x' + valueWei
+          }]
+        });
+        showResult('txResult', {
+          success: true,
+          signedTransaction: signedTx,
+          from: currentAccount,
+          to,
+          value: valueEth + ' ETH'
+        });
+      } catch (error) {
+        showResult('txResult', { error: error.message, code: error.code }, true);
+      }
+    }
+
+    // 测试切换网络
+    async function testSwitchChain() {
+      hideResult('switchChainResult');
+      try {
+        const chainId = document.getElementById('switchChainIdInput').value.trim();
+        if (!chainId) {
+          showResult('switchChainResult', { error: '请输入 Chain ID' }, true);
+          return;
+        }
+        
+        const result = await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: chainId }]
+        });
+        
+        showResult('switchChainResult', {
+          success: true,
+          message: '网络切换成功',
+          chainId: chainId,
+          result: result
+        });
+        
+        // 更新显示的 Chain ID
+        currentChainId = chainId;
+        updateAccountInfo();
+      } catch (error) {
+        showResult('switchChainResult', {
+          error: error.message,
+          code: error.code,
+          data: error.data
+        }, true);
+      }
+    }
+
+    // 切换到 Ethereum 主网
+    async function testSwitchToEthereum() {
+      document.getElementById('switchChainIdInput').value = '0x1';
+      await testSwitchChain();
+    }
+
+    // 切换到 Sepolia 测试网
+    async function testSwitchToSepolia() {
+      document.getElementById('switchChainIdInput').value = '0xaa36a7'; // 11155111
+      await testSwitchChain();
+    }
+
+    // 切换到 Polygon
+    async function testSwitchToPolygon() {
+      document.getElementById('switchChainIdInput').value = '0x89'; // 137
+      await testSwitchChain();
+    }
+
+    // 切换到 Optimism
+    async function testSwitchToOptimism() {
+      document.getElementById('switchChainIdInput').value = '0xa'; // 10
+      await testSwitchChain();
+    }
+
+    // 切换到 BSC
+    async function testSwitchToBSC() {
+      document.getElementById('switchChainIdInput').value = '0x38'; // 56
+      await testSwitchChain();
+    }
+
+    // 测试添加网络
+    async function testAddChain() {
+      hideResult('addChainResult');
+      try {
+        const chainId = document.getElementById('addChainIdInput').value.trim();
+        const chainName = document.getElementById('addChainNameInput').value.trim();
+        const rpcUrl = document.getElementById('addRpcUrlInput').value.trim();
+        const currencySymbol = document.getElementById('addCurrencySymbolInput').value.trim();
+        const blockExplorer = document.getElementById('addBlockExplorerInput').value.trim();
+
+        if (!chainId || !chainName || !rpcUrl || !currencySymbol) {
+          showResult('addChainResult', { error: '请填写所有必填字段' }, true);
+          return;
+        }
+
+        const chainParams = {
+          chainId: chainId,
+          chainName: chainName,
+          nativeCurrency: {
+            name: currencySymbol,
+            symbol: currencySymbol,
+            decimals: 18
+          },
+          rpcUrls: [rpcUrl]
+        };
+
+        if (blockExplorer) {
+          chainParams.blockExplorerUrls = [blockExplorer];
+        }
+
+        const result = await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [chainParams]
+        });
+
+        showResult('addChainResult', {
+          success: true,
+          message: '网络添加成功',
+          chainParams: chainParams,
+          result: result
+        });
+      } catch (error) {
+        showResult('addChainResult', {
+          error: error.message,
+          code: error.code
+        }, true);
+      }
+    }
+
+    // 填充 Polygon 示例
+    function fillPolygonExample() {
+      document.getElementById('addChainIdInput').value = '0x89';
+      document.getElementById('addChainNameInput').value = 'Polygon Mainnet';
+      document.getElementById('addRpcUrlInput').value = 'https://polygon-rpc.com';
+      document.getElementById('addCurrencySymbolInput').value = 'MATIC';
+      document.getElementById('addBlockExplorerInput').value = 'https://polygonscan.com';
+    }
+
+    // 填充 Arbitrum 示例
+    function fillArbitrumExample() {
+      document.getElementById('addChainIdInput').value = '0xa4b1';
+      document.getElementById('addChainNameInput').value = 'Arbitrum One';
+      document.getElementById('addRpcUrlInput').value = 'https://arb1.arbitrum.io/rpc';
+      document.getElementById('addCurrencySymbolInput').value = 'ETH';
+      document.getElementById('addBlockExplorerInput').value = 'https://arbiscan.io';
+    }
+
+    // 测试 wallet_watchAsset
+    async function testWatchAsset() {
+      hideResult('watchAssetResult');
+      try {
+        const address = document.getElementById('tokenAddressInput').value.trim();
+        const symbol = document.getElementById('tokenSymbolInput').value.trim();
+        const decimals = document.getElementById('tokenDecimalsInput').value.trim();
+        const image = document.getElementById('tokenImageInput').value.trim();
+
+        if (!address) {
+          showResult('watchAssetResult', { error: '请输入代币合约地址' }, true);
+          return;
+        }
+
+        const params = {
+          type: 'ERC20',
+          options: {
+            address: address
+          }
+        };
+
+        // 如果提供了可选参数，添加到 options 中
+        if (symbol) {
+          params.options.symbol = symbol;
+        }
+        if (decimals) {
+          params.options.decimals = parseInt(decimals);
+        }
+        if (image) {
+          params.options.image = image;
+        }
+
+        const result = await window.ethereum.request({
+          method: 'wallet_watchAsset',
+          params: [params]
+        });
+
+        showResult('watchAssetResult', {
+          success: true,
+          message: '代币已成功添加到钱包',
+          result: result,
+          params: params
+        });
+      } catch (error) {
+        showResult('watchAssetResult', {
+          error: error.message,
+          code: error.code,
+          hint: '请确保代币合约地址有效，且钱包已连接'
+        }, true);
+      }
+    }
+
+    // 填充 USDT 示例 (Ethereum Mainnet)
+    function fillUSDTExample() {
+      document.getElementById('tokenAddressInput').value = '0xdAC17F958D2ee523a2206206994597C13D831ec7';
+      document.getElementById('tokenSymbolInput').value = 'USDT';
+      document.getElementById('tokenDecimalsInput').value = '6';
+      document.getElementById('tokenImageInput').value = '';
+    }
+
+    // 填充 DAI 示例 (Ethereum Mainnet)
+    function fillDAIExample() {
+      document.getElementById('tokenAddressInput').value = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
+      document.getElementById('tokenSymbolInput').value = 'DAI';
+      document.getElementById('tokenDecimalsInput').value = '18';
+      document.getElementById('tokenImageInput').value = '';
+    }
+
+    // 填充 WETH 示例 (Ethereum Mainnet)
+    function fillWETHExample() {
+      document.getElementById('tokenAddressInput').value = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
+      document.getElementById('tokenSymbolInput').value = 'WETH';
+      document.getElementById('tokenDecimalsInput').value = '18';
+      document.getElementById('tokenImageInput').value = '';
+    }
+  </script>
+</body>
+</html>
